@@ -58,7 +58,7 @@ Key features:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/10x-cards.git
+git clone https://github.com/MrCresh619/10x-cards.git
 cd 10x-cards
 ```
 
