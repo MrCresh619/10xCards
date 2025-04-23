@@ -1,8 +1,9 @@
-/* Schemat bazy danych dla projektu 10x-cards */
+/_ Schemat bazy danych dla projektu 10x-cards _/
 
 ## 1. Lista tabel z ich kolumnami, typami danych i ograniczeniami
 
 ### Tabela `users`
+
 This table is managed by Supabase Auth.
 
 - **id**: UUID, PRIMARY KEY
@@ -12,6 +13,7 @@ This table is managed by Supabase Auth.
 - **confirmed_at**: TIMESTAMPTZ
 
 ### Tabela `flashcards`
+
 - **id**: BIGSERIAL PRIMARY_KEY
 - **user_id**: UUID, NOT NULL, FOREIGN KEY odnosi się do users(id)
 - **front**: VARCHAR(200) NOT NULL
@@ -21,9 +23,10 @@ This table is managed by Supabase Auth.
 - **updated_at**: TIMESTAMPTZ, NOT_NULL, DEFAULT now()
 - **generated_id**: BIGINT REFERENCES generations(id) ON DEFAULT SET NULL
 
-*Trigger: Automatically update the 'update_at' column on record updates.*
+_Trigger: Automatically update the 'update_at' column on record updates._
 
 ### Tabela `generations`
+
 - **id**: BIGSERIAL PRIMARY_KEY
 - **user_id**: UUID, NOT NULL, FOREIGN KEY odnosi się do users(id)
 - **model**: VARCHAR, NOT_NULL
@@ -32,11 +35,12 @@ This table is managed by Supabase Auth.
 - **accepted_edited_count**: INTEGER NULLABLE
 - **source_text_hash**: VARCHAR, NOT_NULL
 - **source_text_length**: INTEGER NOT NULL, CHECK (source_text_length BETWEEN 1000 AND 10000)
-- **generation_duration**: INTEGER, NOT_NULL 
+- **generation_duration**: INTEGER, NOT_NULL
 - **created_at**: TIMESTAMPTZ, NOT_NULL, DEFAULT now()
 - **updated_at**: TIMESTAMPTZ, NOT_NULL, DEFAULT now()
 
 ### Tabela `generations_error_logs`
+
 - **id**: BIGSERIAL PRIMARY_KEY
 - **user_id**: UUID, NOT NULL, FOREIGN KEY odnosi się do users(id) z ON DELETE CASCADE
 - **source_text_hash**: VARCHAR, NOT_NULL
@@ -54,6 +58,7 @@ This table is managed by Supabase Auth.
 ## 3. Indeksy
 
 - Domyślne indeksy:
+
   - Klucze główne (`id`) są automatycznie indeksowane.
 
 - Dodatkowe indeksy dla poprawy wydajności:
