@@ -1,6 +1,7 @@
 import type { FlashcardProposalDTO } from "../../types";
 import { supabaseClient } from "../../db/supabase.client";
 import crypto from "crypto";
+import { OpenRouterService } from "./openrouter.service";
 
 interface GenerationResult {
   generation_id: number;
@@ -10,6 +11,8 @@ interface GenerationResult {
 
 interface GenerationServiceOptions {
   timeoutMs?: number;
+  openRouterApiKey: string;
+  openRouterModel?: string;
 }
 
 /**
@@ -17,8 +20,54 @@ interface GenerationServiceOptions {
  */
 export class GenerationService {
   private readonly defaultTimeout = 60000; // 60 sekund domyślny timeout
+  private openRouterService: OpenRouterService;
 
-  constructor(private options: GenerationServiceOptions = {}) {}
+  constructor(private options: Partial<GenerationServiceOptions> = {}) {
+    const apiKey = options.openRouterApiKey || import.meta.env.OPENROUTER_API_KEY;
+
+    if (!apiKey) {
+      throw new Error(
+        "OpenRouter API key jest wymagany. Podaj klucz w opcjach lub ustaw zmienną środowiskową OPENROUTER_API_KEY."
+      );
+    }
+
+    this.openRouterService = new OpenRouterService(
+      apiKey,
+      options.openRouterModel || "openai/gpt-4o-mini",
+      { temperature: 0.7, maxTokens: 2000 },
+      this.getSystemPrompt()
+    );
+
+    // Ustawienie formatu odpowiedzi osobno
+    this.openRouterService.configure({
+      responseFormat: {
+        type: "json_schema",
+        json_schema: {
+          name: "flashcards",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              flashcards: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  properties: {
+                    front: { type: "string" },
+                    back: { type: "string" },
+                  },
+                  required: ["front", "back"],
+                },
+              },
+            },
+            required: ["flashcards"],
+          },
+        },
+      },
+    });
+  }
 
   /**
    * Wywołuje zewnętrzne LLM API w celu wygenerowania propozycji flashcardów
@@ -40,7 +89,7 @@ export class GenerationService {
           user_id: userId,
           source_text_length: sourceText.length,
           source_text_hash: sourceTextHash,
-          model: "gpt-4", // przykładowa nazwa modelu
+          model: this.options.openRouterModel || "openai/gpt-4o-mini",
           generated_count: 0, // początkowo 0, zaktualizujemy po generacji
           generation_duration: 0, // początkowo 0, zaktualizujemy po generacji
         })
@@ -53,11 +102,9 @@ export class GenerationService {
         );
       }
 
-      // Wywołanie zewnętrznego API
+      // Wywołanie zewnętrznego API poprzez OpenRouterService
       const result = await this.callExternalLLMApi(sourceText);
       const generationDuration = Math.floor((Date.now() - startTime) / 1000);
-
-      // Propozycje flashcardów są zwracane do użytkownika bez zapisywania ich do bazy danych.
 
       // Aktualizacja rekordu generacji po zakończeniu
       const { error: updateError } = await supabaseClient
@@ -90,14 +137,13 @@ export class GenerationService {
   }
 
   /**
-   * Tymczasowa implementacja wywołania zewnętrznego LLM API
-   * W rzeczywistej implementacji byłoby to połączenie z faktycznym API (np. OpenAI)
+   * Wywołanie zewnętrznego LLM API poprzez OpenRouterService
    */
   private async callExternalLLMApi(
     sourceText: string
   ): Promise<Omit<GenerationResult, "generation_id">> {
     // Implementacja timeoutu dla wywołania API
-    const timeoutMs = this.options.timeoutMs || this.defaultTimeout;
+    const timeoutMs = this.options?.timeoutMs || this.defaultTimeout;
 
     try {
       // Stworzenie promisa z timeoutem
@@ -124,62 +170,85 @@ export class GenerationService {
   }
 
   /**
-   * Właściwe wywołanie zewnętrznego API
-   * W rzeczywistej implementacji tutaj znajdowałoby się wywołanie zewnętrznego API
+   * Właściwe wywołanie zewnętrznego API poprzez OpenRouterService
    */
   private async _performApiCall(
     sourceText: string
   ): Promise<Omit<GenerationResult, "generation_id">> {
-    // Symulacja opóźnienia odpowiedzi z API
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const prompt = `Przeanalizuj poniższy tekst i stwórz fiszki edukacyjne (flashcards).
+Na przedniej stronie fiszki powinna być umieszczona precyzyjna treść pytania.
+Na tylnej stronie fiszki powinna znaleźć się kompletna odpowiedź.
+Zwróć wynik w formacie JSON jako tablicę obiektów z polami: 'front' i 'back'.
 
-    // Analiza tekstu przy pomocy prostego algorytmu
-    const sentenceCount = sourceText.split(/[.!?]+/).filter(Boolean).length;
-    const proposalsCount = Math.min(Math.max(Math.floor(sentenceCount / 10), 3), 10);
+Tekst do analizy:
+${sourceText}`;
 
-    // Generowanie odpowiedniej liczby flashcardów na podstawie proposalsCount
-    const flashcards_proposals: FlashcardProposalDTO[] = [];
+    console.log("Uruchamiam generację fiszek. Długość tekstu:", sourceText.length);
 
-    // Przykładowe pytania i odpowiedzi
-    const examples = [
-      {
-        front: "Jakie są główne zalety wykorzystania generatywnej AI w edukacji?",
-        back: "Główne zalety to: personalizacja materiałów edukacyjnych, automatyzacja tworzenia materiałów dydaktycznych, wsparcie w uczeniu się poprzez generowanie przykładów i wyjaśnień dostosowanych do potrzeb ucznia.",
-      },
-      {
-        front: "Jakie wyzwania etyczne wiążą się z wykorzystaniem AI w edukacji?",
-        back: "Wyzwania etyczne obejmują: ochronę prywatności danych uczniów, zapewnienie równego dostępu do technologii, ryzyko pogłębienia nierówności edukacyjnych, oraz potencjalne uzależnienie od technologii kosztem rozwijania umiejętności krytycznego myślenia.",
-      },
-      {
-        front: "W jaki sposób można zapewnić jakość flashcardów generowanych przez AI?",
-        back: "Jakość flashcardów można zapewnić poprzez: weryfikację przez ekspertów dziedzinowych, implementację mechanizmów oceny przez użytkowników, stałe doskonalenie modeli AI na podstawie feedbacku, oraz połączenie automatycznej generacji z ludzką redakcją.",
-      },
-      {
-        front:
-          "Jakie są potencjalne zastosowania AI w tworzeniu spersonalizowanych materiałów edukacyjnych?",
-        back: "Potencjalne zastosowania obejmują: generowanie ćwiczeń o różnym poziomie trudności, dostosowanie tempa nauki do indywidualnych potrzeb, tworzenie przykładów dopasowanych do zainteresowań ucznia oraz adaptacyjne testy, które dynamicznie dostosowują się do poziomu wiedzy.",
-      },
-      {
-        front: "Jak AI może wspierać nauczycieli w ocenianiu prac uczniów?",
-        back: "AI może wspierać nauczycieli poprzez: automatyczną wstępną ocenę odpowiedzi, identyfikację typowych błędów, generowanie konstruktywnej informacji zwrotnej oraz analizę postępów uczniów w czasie, co pozwala nauczycielom skupić się na bardziej złożonych aspektach edukacji.",
-      },
-    ];
+    try {
+      const response = await this.openRouterService.sendMessage(prompt);
+      console.log("Otrzymano odpowiedź od OpenRouter:", JSON.stringify(response, null, 2));
 
-    // Dodajemy tyle flashcardów, ile określa proposalsCount
-    for (let i = 0; i < proposalsCount; i++) {
-      const example = examples[i % examples.length]; // Cykliczne wybieranie przykładów
-      flashcards_proposals.push({
-        front: example.front,
-        back: example.back,
+      if (response.status === "error") {
+        throw new Error(`Błąd podczas generowania fiszek: ${response.error}`);
+      }
+
+      const flashcardsData = response.data as {
+        flashcards?: { front: string; back: string }[];
+      };
+      console.log("Dane fiszek:", JSON.stringify(flashcardsData, null, 2));
+
+      if (!flashcardsData.flashcards || !Array.isArray(flashcardsData.flashcards)) {
+        console.error("Nieprawidłowy format odpowiedzi:", flashcardsData);
+        throw new Error("Odpowiedź API nie zawiera tablicy fiszek");
+      }
+
+      const flashcards_proposals: FlashcardProposalDTO[] = flashcardsData.flashcards.map(card => ({
+        front: card.front || "",
+        back: card.back || "",
         source: "ai-full",
-      });
-    }
+      }));
 
-    // Mockowana odpowiedź API - w rzeczywistej implementacji byłoby to wywołanie zewnętrznego API
-    return {
-      flashcards_proposals,
-      generated_count: flashcards_proposals.length,
-    };
+      console.log(`Wygenerowano ${flashcards_proposals.length} fiszek`);
+
+      return {
+        flashcards_proposals,
+        generated_count: flashcards_proposals.length,
+      };
+    } catch (error) {
+      console.error("Błąd podczas generowania fiszek:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Zwraca systemowy prompt dla modelu LLM
+   */
+  private getSystemPrompt(): string {
+    return `Jesteś zaawansowanym asystentem specjalizującym się w tworzeniu fiszek edukacyjnych.
+Twoim zadaniem jest analiza podanego tekstu i utworzenie zbioru fiszek, które pomogą użytkownikowi zapamiętać najważniejsze informacje.
+
+Zasady tworzenia fiszek:
+1. Twórz fiszki zawierające najważniejsze koncepcje, definicje i fakty z tekstu
+2. Na przedniej stronie fiszki umieszczaj precyzyjne pytanie
+3. Na tylnej stronie fiszki umieszczaj pełną, kompletną odpowiedź
+4. Używaj jasnego, zwięzłego języka
+5. Unikaj zbyt ogólnych pytań
+6. Fiszki powinny być samodzielne (nie wymagać kontekstu z innych fiszek)
+7. Ogranicz się do 5-10 fiszek, zależnie od długości tekstu
+
+BARDZO WAŻNE - Twoja odpowiedź musi być w formacie JSON z dokładnie taką strukturą:
+{
+  "flashcards": [
+    {
+      "front": "Pytanie na przedniej stronie fiszki",
+      "back": "Odpowiedź na tylnej stronie fiszki"
+    },
+    // więcej fiszek w tym samym formacie
+  ]
+}
+
+Nie dodawaj żadnych dodatkowych właściwości ani komentarzy poza tym schematem.`;
   }
 
   /**
