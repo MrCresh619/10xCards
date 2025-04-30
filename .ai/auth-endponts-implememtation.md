@@ -3,17 +3,20 @@
 ## 1. Opis endpointów
 
 - **POST /api/auth/register**
+
   - Rejestracja nowego użytkownika
   - Walidacja danych rejestracyjnych przy użyciu Zod
   - Wywołanie metody `signUp` z klienta Supabase
 
 - **POST /api/auth/login**
+
   - Logowanie użytkownika
   - Weryfikacja danych logowania
   - Wywołanie metody `signIn` z klienta Supabase
   - Ustawianie ciasteczek sesyjnych
 
 - **POST /api/auth/logout**
+
   - Wylogowanie użytkownika
   - Wywołanie metody `signOut` z klienta Supabase
   - Usunięcie ciasteczek sesyjnych
@@ -39,19 +42,21 @@
 
 ## 4. Plan wdrażania krok po kroku
 
-1. Utworzenie katalogu: `src/pages/api/auth` zgodnie z strukturą projektu
-2. Utworzenie pliku `register.ts` i implementacja endpointu POST /api/auth/register
-3. Utworzenie pliku `login.ts` i implementacja endpointu POST /api/auth/login
-4. Utworzenie pliku `logout.ts` i implementacja endpointu POST /api/auth/logout
-5. Utworzenie pliku `password-recovery.ts` i implementacja endpointu POST /api/auth/password-recovery
-6. Implementacja walidacji wejścia danych przy pomocy Zod
-7. Integracja z Supabase SSR przy użyciu `createSupabaseServerInstance`
-8. Dodanie bloków try/catch we wszystkich endpointach
-9. Utworzenie serwisu autentykacji w katalogu `src/lib/services` (plik `auth.service.ts`) oraz implementacja metod:
-   - `registerUser` – logika rejestracji nowego użytkownika
-   - `loginUser` – logika logowania i ustawiania sesji
-   - `logoutUser` – logika wylogowywania
-   - `passwordRecovery` – logika odzyskiwania hasła
+1. Sprawdzanie bibliotek i instalacja brakujących.
+2. Utworzenie katalogu: `src/pages/api/auth` zgodnie z strukturą projektu
+3. Utworzenie pliku `register.ts` i implementacja endpointu POST /api/auth/register
+4. Utworzenie pliku `login.ts` i implementacja endpointu POST /api/auth/login
+5. Utworzenie pliku `logout.ts` i implementacja endpointu POST /api/auth/logout
+6. Utworzenie pliku `password-recovery.ts` i implementacja endpointu POST /api/auth/password-recovery
+7. Implementacja walidacji wejścia danych przy pomocy Zod
+8. Integracja z Supabase SSR przy użyciu `createSupabaseServerInstance`
+9. Dodanie bloków try/catch we wszystkich endpointach
+10. Utworzenie serwisu autentykacji w katalogu `src/lib/services` (plik `auth.service.ts`) oraz implementacja metod:
+
+- `registerUser` – logika rejestracji nowego użytkownika
+- `loginUser` – logika logowania i ustawiania sesji
+- `logoutUser` – logika wylogowywania
+- `passwordRecovery` – logika odzyskiwania hasła
 
 ## 5. Uwagi i wskazówki
 
@@ -67,7 +72,7 @@ Plan wdrożenia endpointów autentykacji gwarantuje:
 - Spójną integrację z Supabase i środowiskiem SSR
 - Solidną obsługę błędów i walidację danych
 - Łatwą konserwację oraz możliwość skalowania systemu autentykacji
-- Bezpieczną i przejrzystą implementację procesów rejestracji, logowania, wylogowania oraz odzyskiwania hasła 
+- Bezpieczną i przejrzystą implementację procesów rejestracji, logowania, wylogowania oraz odzyskiwania hasła
 
 ## 7. Implementacja serwisu
 
@@ -78,4 +83,4 @@ Plan wdrożenia endpointów autentykacji gwarantuje:
   - `logoutUser` – logika wylogowywania, obsługa ciasteczek oraz wywołaniem metody `signOut`.
   - `passwordRecovery` – logika inicjacji procesu odzyskiwania hasła, weryfikacja istnienia użytkownika i wysyłka linku resetującego.
 - Serwis będzie korzystał z funkcji `createSupabaseServerInstance` do komunikacji z bazą danych i sesjami autentykacyjnymi.
-- Centralizacja logiki autentykacji w serwisie ułatwi testowanie, konserwację i rozwój systemu oraz umożliwi ponowne użycie kodu w różnych endpointach. 
+- Centralizacja logiki autentykacji w serwisie ułatwi testowanie, konserwację i rozwój systemu oraz umożliwi ponowne użycie kodu w różnych endpointach.
