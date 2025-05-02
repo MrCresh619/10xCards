@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { ZodError, z } from "zod";
 import type { CreateFlashcardsCommand } from "../../types";
 import { FlashcardService } from "../../lib/services/flashcard.service";
-import { supabaseClient, DEFAULT_USER_ID } from "../../db/supabase.client";
+import { createSupabaseServerInstance } from "../../db/supabase.client";
 
 export const prerender = false;
 
@@ -57,17 +57,31 @@ const createFlashcardsSchema = z.object({
     .max(100, { message: "Przekroczono maksymalną liczbę flashcardów (limit: 100)" }),
 });
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
   try {
+    // Inicjalizacja Supabase i pobranie aktualnego użytkownika
+    const supabase = createSupabaseServerInstance({ cookies, headers: request.headers });
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Nieautoryzowany dostęp" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // Pobranie i walidacja danych wejściowych
     const requestData: CreateFlashcardsCommand = await request.json();
     const validatedData = createFlashcardsSchema.parse(requestData);
 
     // Inicjalizacja serwisu flashcardów z supabaseClient
-    const flashcardService = new FlashcardService(supabaseClient);
+    const flashcardService = new FlashcardService(supabase);
 
-    // Wywołanie metody tworzącej flashcardy z użyciem DEFAULT_USER_ID
-    const result = await flashcardService.createFlashcards(validatedData, DEFAULT_USER_ID);
+    // Wywołanie metody tworzącej flashcardy z użyciem ID zalogowanego użytkownika
+    const result = await flashcardService.createFlashcards(validatedData, user.id);
 
     if (result.data.length > 0) {
       console.log("[SUCCESS] Utworzono flashcards:", result.data);
