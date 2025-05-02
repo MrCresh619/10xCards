@@ -1,13 +1,32 @@
 import type { APIRoute } from "astro";
-import { AuthService } from "@/lib/services/auth.service";
+import { supabaseClient } from "@/db/supabase.client";
 
 export const prerender = false;
 
 export const POST: APIRoute = async () => {
-  const response = await AuthService.logoutUser();
+  try {
+    // Wylogowanie z Supabase
+    const { error } = await supabaseClient.auth.signOut();
 
-  return new Response(
-    JSON.stringify(response.data || { error: response.error, details: response.details }),
-    { status: response.status }
-  );
+    if (error) {
+      throw error;
+    }
+
+    // Usunięcie ciasteczka z tokenem
+    const response = new Response(JSON.stringify({ message: "Wylogowano pomyślnie" }), {
+      status: 200,
+    });
+
+    response.headers.append(
+      "Set-Cookie",
+      "auth-token=; HttpOnly; Path=/; SameSite=Strict; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    );
+
+    return response;
+  } catch (error) {
+    console.error("Błąd wylogowania:", error);
+    return new Response(JSON.stringify({ message: "Wystąpił błąd podczas wylogowania" }), {
+      status: 500,
+    });
+  }
 };

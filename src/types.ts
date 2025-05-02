@@ -3,6 +3,7 @@
 */
 
 import type { Database } from "./db/database.types";
+import type { createSupabaseServerInstance } from "./db/supabase.client";
 
 // Typ dla źródła flashcarda
 export type FlashcardSource = "manual" | "ai-full" | "ai-edited";
@@ -85,4 +86,20 @@ export type GenerationErrorLogDTO = Database["public"]["Tables"]["generations_er
 export interface CreateFlashcardsResponseDTO {
   data: FlashcardDTO[];
   failed: { error: string; flashcard: CreateFlashcardCommand }[];
+}
+
+// Deklaracja interfejsu Locals dla Astro
+export interface AstroLocals {
+  supabase: ReturnType<typeof createSupabaseServerInstance>;
+  user?: {
+    id: string;
+    email: string | null;
+  };
+  responseWasSent?: boolean;
+}
+
+declare global {
+  namespace App {
+    interface Locals extends AstroLocals {}
+  }
 }

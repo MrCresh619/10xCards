@@ -1,0 +1,56 @@
+---
+import "../styles/global.css";
+import { AuthProvider } from "@/components/providers/AuthProvider";
+import { ClientRouter } from "astro:transitions";
+
+// Definicja typów dla props
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+// Destrukturyzacja props z wartościami domyślnymi
+const { title = "10xCards", description = "System do tworzenia i zarządzania fiszkami" } =
+  Astro.props;
+
+// Usuwam sprawdzanie tokena tutaj, bo jest już obsługiwane przez middleware
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <ClientRouter />
+  </head>
+  <body class="min-h-screen bg-background font-sans antialiased">
+    <AuthProvider client:load>
+      <div class="relative flex min-h-screen flex-col">
+        <header
+          class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        >
+          <div class="container flex h-14 items-center">
+            <nav class="flex items-center space-x-4 lg:space-x-6">
+              <a href="/generate" class="text-sm font-medium transition-colors hover:text-primary">
+                Generuj
+              </a>
+              <a
+                href="/flashcards"
+                class="text-sm font-medium transition-colors hover:text-primary"
+              >
+                Moje Fiszki
+              </a>
+            </nav>
+          </div>
+        </header>
+        <main class="flex-1">
+          <div class="container py-6">
+            <slot />
+          </div>
+        </main>
+      </div>
+    </AuthProvider>
+  </body>
+</html>

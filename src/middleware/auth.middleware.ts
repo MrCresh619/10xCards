@@ -1,5 +1,4 @@
 import type { MiddlewareHandler } from "astro";
-import { supabaseClient } from "@/db/supabase.client";
 
 // Lista ścieżek publicznych, które nie wymagają autoryzacji
 const PUBLIC_PATHS = [
@@ -10,34 +9,76 @@ const PUBLIC_PATHS = [
   "/api/auth/login",
   "/api/auth/register",
   "/api/auth/password-recovery",
+  "/api/auth/check",
+  "/api/auth/refresh-token",
+  "/assets",
+  "/favicon.ico"
 ];
 
-export const authMiddleware: MiddlewareHandler = async ({ request, redirect }, next) => {
-  const url = new URL(request.url);
+export const authMiddleware: MiddlewareHandler = async ({ locals, url, redirect }, next) => {
   const isPublicPath = PUBLIC_PATHS.some(path => url.pathname.startsWith(path));
 
   // Pomijamy weryfikację dla ścieżek publicznych
   if (isPublicPath) {
+    if (url.pathname === "/api/auth/check") {
+      // Dla endpointu /api/auth/check nie ustawiamy user w locals
+      return next();
+    }
+    // Inicjalizacja kontekstu dla innych publicznych ścieżek
+    locals.user = undefined;
     return next();
   }
 
   try {
     const {
-      data: { session },
-      error,
-    } = await supabaseClient.auth.getSession();
+      data: { user },
+      error: userError,
+    } = await locals.supabase.auth.getUser();
 
-    // Jeśli nie ma sesji lub wystąpił błąd, przekierowujemy na stronę logowania
-    if (error || !session) {
+    if (userError || !user) {
+      console.error("Błąd autoryzacji:", userError?.message);
+      
+      if (url.pathname.startsWith("/api/")) {
+        return new Response(
+          JSON.stringify({ error: "Nieautoryzowany dostęp" }), 
+          { 
+            status: 401,
+            headers: { 
+              "Content-Type": "application/json",
+              "Cache-Control": "no-store"
+            }
+          }
+        );
+      }
+
       return redirect("/login");
     }
 
-    // Dodajemy informacje o sesji do kontekstu
-    const response = await next();
-    return response;
+    // Ustawiamy informacje o użytkowniku w kontekście
+    locals.user = {
+      id: user.id,
+      email: user.email || null,
+    };
+
+    // Kontynuujemy przetwarzanie żądania
+    return next();
+
   } catch (error) {
-    console.error("Error in auth middleware:", error);
-    // W przypadku błędu przekierowujemy na stronę logowania
+    console.error("Krytyczny błąd w middleware auth:", error);
+    
+    if (url.pathname.startsWith("/api/")) {
+      return new Response(
+        JSON.stringify({ error: "Błąd serwera" }), 
+        { 
+          status: 500,
+          headers: { 
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store"
+          }
+        }
+      );
+    }
+
     return redirect("/login");
   }
 };

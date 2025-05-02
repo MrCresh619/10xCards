@@ -2,7 +2,9 @@ import type { APIRoute } from "astro";
 import { ZodError, z } from "zod";
 import type { CreateGenerationCommand, GenerationCreatedDTO } from "../../types";
 import { GenerationService } from "../../lib/services/generation.service";
-import { DEFAULT_USER_ID } from "../../db/supabase.client";
+import { createSupabaseServerInstance } from "../../db/supabase.client";
+
+export const prerender = false;
 
 // Schemat walidacji dla żądania
 const createGenerationSchema = z.object({
@@ -16,8 +18,22 @@ const createGenerationSchema = z.object({
     }),
 });
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
   try {
+    // Inicjalizacja Supabase i pobranie aktualnego użytkownika
+    const supabase = createSupabaseServerInstance({ cookies, headers: request.headers });
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Nieautoryzowany dostęp" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // Pobranie i walidacja danych wejściowych
     const requestData: CreateGenerationCommand = await request.json();
     const validatedData = createGenerationSchema.parse(requestData);
@@ -25,11 +41,8 @@ export const POST: APIRoute = async ({ request }) => {
     // Inicjalizacja serwisu generacji
     const generationService = new GenerationService();
 
-    // Wywołanie generacji flashcardów przy użyciu DEFAULT_USER_ID
-    const result = await generationService.generateFlashcards(
-      validatedData.source_text,
-      DEFAULT_USER_ID
-    );
+    // Wywołanie generacji flashcardów z ID zalogowanego użytkownika
+    const result = await generationService.generateFlashcards(validatedData.source_text, user.id);
 
     // Utworzenie odpowiedzi
     const response: GenerationCreatedDTO = {

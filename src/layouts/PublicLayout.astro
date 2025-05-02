@@ -1,0 +1,36 @@
+---
+import { ClientRouter } from "astro:transitions";
+import "../styles/global.css";
+
+// Definicja typów dla props
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+// Destrukturyzacja props z wartościami domyślnymi
+const {
+  title = "10xCards - Logowanie",
+  description = "System do tworzenia i zarządzania fiszkami",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <ClientRouter />
+  </head>
+  <body class="min-h-screen bg-background font-sans antialiased">
+    <div class="relative flex min-h-screen flex-col">
+      <main class="flex-1 flex items-center justify-center">
+        <div class="container max-w-[450px] mx-auto p-4">
+          <slot />
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
