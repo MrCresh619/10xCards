@@ -61,6 +61,20 @@
     **Response (200 OK):** Same structure as flashcard creation response.
     **Errors:** 404 if not found; 401 if the flashcard does not belong to the authenticated user.
 
+- **PUT /flashcards/{id}**  
+  **Description:** Updates a specific flashcard.
+  **Validators:**
+
+  - `front`: String, optional, min length 3, max length 200
+  - `back`: String, optional, min length 3, max length 500
+  - `source`: String, optional, one of: ['manual', 'ai-edited']
+  - `generated_id`: Number, required if source is changed to 'ai-full' or 'ai-edited'
+    **Request JSON:** Fields to update
+    **Response (200 OK):** Updated flashcard record.
+    **Errors:** 400 for validation errors; 404 if not found; 401 if unauthorized.
+
+- **DELETE /flashcards/{id}**  
+
 - **POST /flashcards**  
   **Description:** Creates one or more flashcards manually or from AI generation.
   **Validators:**
@@ -132,19 +146,6 @@
   - 401 if not authenticated
   - Partial success possible with some flashcards failing validation
 
-- **PUT /flashcards/{id}**  
-  **Description:** Updates a specific flashcard.
-  **Validators:**
-
-  - `front`: String, optional, min length 3, max length 200
-  - `back`: String, optional, min length 3, max length 500
-  - `source`: String, optional, one of: ['manual', 'ai-edited']
-  - `generated_id`: Number, required if source is changed to 'ai-full' or 'ai-edited'
-    **Request JSON:** Fields to update
-    **Response (200 OK):** Updated flashcard record.
-    **Errors:** 400 for validation errors; 404 if not found; 401 if unauthorized.
-
-- **DELETE /flashcards/{id}**  
   **Description:** Deletes a specific flashcard.
   **Response:** 204 No Content upon successful deletion.
   **Errors:** 404 if not found; 401 if unauthorized.

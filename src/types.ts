@@ -13,6 +13,7 @@ export interface FlashcardProposalDTO {
   front: string;
   back: string;
   source: Extract<FlashcardSource, "ai-full" | "ai-edited">;
+  generated_id: number;
 }
 
 // DTO dla flashcard, odpowiadający wierszom tabeli flashcards
@@ -21,15 +22,19 @@ export type FlashcardDTO = Database["public"]["Tables"]["flashcards"]["Row"];
 // Command Model do tworzenia pojedynczego flashcarda
 export type CreateFlashcardCommand =
   // Dla ręcznie tworzonego flashcarda (źródło: manual), generated_id nie jest wymagane
-  | (Pick<Database["public"]["Tables"]["flashcards"]["Insert"], "front" | "back"> & {
+  | {
+      front: string;
+      back: string;
       source: "manual";
       generated_id?: never;
-    })
+    }
   // Dla flashcarda generowanego przez AI (źródła: ai-full lub ai-edited), generated_id jest wymagane
-  | (Pick<Database["public"]["Tables"]["flashcards"]["Insert"], "front" | "back"> & {
+  | {
+      front: string;
+      back: string;
       source: Extract<FlashcardSource, "ai-full" | "ai-edited">;
       generated_id: number;
-    });
+    };
 
 // Command Model do zbiorczego tworzenia flashcards
 export interface CreateFlashcardsCommand {

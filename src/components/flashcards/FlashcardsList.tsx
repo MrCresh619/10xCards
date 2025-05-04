@@ -1,191 +1,264 @@
-import { useState } from "react";
-import type { FlashcardProposalDTO } from "@/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { useFlashcards } from "../hooks/useFlashcards";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { motion, AnimatePresence } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationFirst,
+  PaginationLast,
+} from "@/components/ui/pagination";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { FlashcardForm } from "./FlashcardForm";
+import type { FlashcardFormValues } from "@/lib/validations/flashcard";
+import { toast } from "sonner";
+import type { FlashcardDTO } from "@/types";
 
 interface FlashcardsListProps {
-  flashcards: FlashcardProposalDTO[];
-  onAccept: (flashcard: FlashcardProposalDTO) => void;
-  onReject: (flashcard: FlashcardProposalDTO) => void;
-  onEdit: (flashcard: FlashcardProposalDTO, editedFlashcard: FlashcardProposalDTO) => void;
+  userId: string;
 }
 
-interface FlashcardItemProps extends FlashcardProposalDTO {
-  onAccept: () => void;
-  onReject: () => void;
-  onEdit: (editedFlashcard: FlashcardProposalDTO) => void;
-  index: number;
-}
+export const FlashcardsList = ({ userId }: FlashcardsListProps) => {
+  const { flashcards, isLoading, error, loadFlashcards, createFlashcard, updateFlashcard, deleteFlashcard } = useFlashcards(userId);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedFlashcard, setSelectedFlashcard] = useState<FlashcardDTO | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-function FlashcardItem({
-  front,
-  back,
-  source,
-  onAccept,
-  onReject,
-  onEdit,
-  index,
-}: FlashcardItemProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedFront, setEditedFront] = useState(front);
-  const [editedBack, setEditedBack] = useState(back);
-  const [isAccepted, setIsAccepted] = useState(false);
+  useEffect(() => {
+    loadFlashcards(currentPage);
+  }, [loadFlashcards, currentPage]);
 
-  const handleEdit = () => {
-    if (isEditing) {
-      const editedFlashcard: FlashcardProposalDTO = {
-        front: editedFront,
-        back: editedBack,
-        source: "ai-edited" as const,
-      };
-      onEdit(editedFlashcard);
-      setIsAccepted(true);
-    }
-    setIsEditing(!isEditing);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
-  const handleAcceptToggle = (checked: boolean) => {
-    setIsAccepted(checked);
-    if (checked) {
-      onAccept();
-    } else {
-      onReject();
+  const handleAddFlashcard = async (values: FlashcardFormValues) => {
+    try {
+      setIsSubmitting(true);
+      await createFlashcard(values);
+      setIsAddDialogOpen(false);
+      toast.success("Fiszka została dodana pomyślnie");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Wystąpił błąd podczas dodawania fiszki");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const isValid =
-    editedFront.length >= 3 &&
-    editedFront.length <= 200 &&
-    editedBack.length >= 3 &&
-    editedBack.length <= 500;
+  const handleEditClick = (flashcard: FlashcardDTO) => {
+    setSelectedFlashcard(flashcard);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditFlashcard = async (values: FlashcardFormValues) => {
+    if (!selectedFlashcard) return;
+    
+    try {
+      setIsSubmitting(true);
+      await updateFlashcard(selectedFlashcard.id, {
+        front: values.front,
+        back: values.back,
+        source: values.source === "ai-full" ? "ai-edited" : values.source,
+        generated_id: values.generated_id,
+      });
+      setIsEditDialogOpen(false);
+      setSelectedFlashcard(null);
+      toast.success("Fiszka została zaktualizowana pomyślnie");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Wystąpił błąd podczas aktualizacji fiszki");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteClick = (flashcard: FlashcardDTO) => {
+    setSelectedFlashcard(flashcard);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteFlashcard = async () => {
+    if (!selectedFlashcard) return;
+    
+    try {
+      setIsSubmitting(true);
+      await deleteFlashcard(selectedFlashcard.id);
+      setIsDeleteDialogOpen(false);
+      setSelectedFlashcard(null);
+      toast.success("Fiszka została usunięta pomyślnie");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Wystąpił błąd podczas usuwania fiszki");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center p-6">
+        <p className="text-destructive">{error}</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-[100px] w-full" />
+        <Skeleton className="h-[100px] w-full" />
+        <Skeleton className="h-[100px] w-full" />
+      </div>
+    );
+  }
+
+  const isEmpty = !flashcards?.data || flashcards.data.length === 0;
+  const totalPages = !isEmpty && Math.ceil((flashcards.pagination.total || 0) / flashcards.pagination.limit);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
-    >
-      <Card className="mb-4">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-base font-medium">
-            Fiszka {source === "ai-edited" ? "(edytowana)" : ""}
-          </CardTitle>
-          <div className="flex items-center space-x-2">
-            <Switch
-              checked={isAccepted}
-              onCheckedChange={handleAcceptToggle}
-              aria-label="Zaakceptuj fiszkę"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEdit}
-              disabled={isEditing && !isValid}
-            >
-              {isEditing ? "Zapisz" : "Edytuj"}
-            </Button>
-            {isEditing && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditedFront(front);
-                    setEditedBack(back);
-                  }}
-                >
-                  Anuluj
-                </Button>
-              </motion.div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between items-center">
-                <label htmlFor={`front-${index}`} className="text-sm font-medium">
-                  Przód:
-                </label>
-                {isEditing && (
-                  <span
-                    className={`text-xs ${editedFront.length > 200 ? "text-destructive" : "text-muted-foreground"}`}
-                  >
-                    {editedFront.length}/200 znaków
-                  </span>
-                )}
-              </div>
-              {isEditing ? (
-                <div className="space-y-1">
-                  <Textarea
-                    id={`front-${index}`}
-                    value={editedFront}
-                    onChange={e => setEditedFront(e.target.value)}
-                    className="mt-1"
-                    placeholder="Wprowadź tekst przodu fiszki..."
-                  />
-                </div>
-              ) : (
-                <p className="mt-1 text-sm">{front}</p>
-              )}
-            </div>
-            <div>
-              <div className="flex justify-between items-center">
-                <label htmlFor={`back-${index}`} className="text-sm font-medium">
-                  Tył:
-                </label>
-                {isEditing && (
-                  <span
-                    className={`text-xs ${editedBack.length > 500 ? "text-destructive" : "text-muted-foreground"}`}
-                  >
-                    {editedBack.length}/500 znaków
-                  </span>
-                )}
-              </div>
-              {isEditing ? (
-                <div className="space-y-1">
-                  <Textarea
-                    id={`back-${index}`}
-                    value={editedBack}
-                    onChange={e => setEditedBack(e.target.value)}
-                    className="mt-1"
-                    placeholder="Wprowadź tekst tyłu fiszki..."
-                  />
-                </div>
-              ) : (
-                <p className="mt-1 text-sm">{back}</p>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
+    <>
+    {isEmpty ? (
+      <Card className="flex flex-col items-center justify-center p-6 text-center">
+      <CardHeader className="flex flex-col items-center justify-center w-full">
+        <CardTitle>Nie masz jeszcze żadnych fiszek</CardTitle>
+        <CardDescription>
+          Rozpocznij naukę dodając swoją pierwszą fiszkę lub generując fiszki z tekstu.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          Dodaj pierwszą fiszkę
+        </Button>
+      </CardContent>
+    </Card>
+    ) : (
+      <div className="space-y-6">
+      <div className="flex items-center justify-end">
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          Dodaj nową fiszkę
+        </Button>
+      </div>
 
-export function FlashcardsList({ flashcards, onAccept, onReject, onEdit }: FlashcardsListProps) {
-  return (
-    <div className="space-y-4 grid grid-cols-3 gap-4 w-full">
-      <AnimatePresence>
-        {flashcards.map((flashcard, index) => (
-          <FlashcardItem
-            key={index}
-            {...flashcard}
-            index={index}
-            onAccept={() => onAccept(flashcard)}
-            onReject={() => onReject(flashcard)}
-            onEdit={editedFlashcard => onEdit(flashcard, editedFlashcard)}
-          />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {flashcards.data.map((flashcard) => (
+          <Card key={flashcard.id} className="overflow-hidden">
+            <CardHeader>
+              <CardTitle className="line-clamp-2">{flashcard.front}</CardTitle>
+              <CardDescription>
+                Utworzono: {new Date(flashcard.created_at).toLocaleDateString("pl-PL")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="line-clamp-3">{flashcard.back}</p>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => handleEditClick(flashcard)}>
+                Edytuj
+              </Button>
+              <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(flashcard)}>
+                Usuń
+              </Button>
+            </CardFooter>
+          </Card>
         ))}
-      </AnimatePresence>
+      </div>
+
+      {totalPages && totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationFirst onClick={() => handlePageChange(1)} disabled={currentPage === 1} />
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationPrevious onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} />
+            </PaginationItem>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => handlePageChange(page)}
+                  isActive={currentPage === page}
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLast onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edytuj fiszkę</DialogTitle>
+          </DialogHeader>
+          <FlashcardForm
+            initialValues={
+              selectedFlashcard?.source === "manual"
+                ? {
+                    front: selectedFlashcard.front,
+                    back: selectedFlashcard.back,
+                    source: "manual" as const,
+                  }
+                : selectedFlashcard
+                ? {
+                    front: selectedFlashcard.front,
+                    back: selectedFlashcard.back,
+                    source: "ai-edited" as const,
+                    generated_id: selectedFlashcard.generated_id ?? undefined,
+                  }
+                : undefined
+            }
+            onSubmit={handleEditFlashcard}
+            onCancel={() => setIsEditDialogOpen(false)}
+            isSubmitting={isSubmitting}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Usuń fiszkę</DialogTitle>
+            <DialogDescription>
+              Czy na pewno chcesz usunąć tę fiszkę? Tej operacji nie można cofnąć.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Anuluj
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteFlashcard} disabled={isSubmitting}>
+              {isSubmitting ? "Usuwanie..." : "Usuń"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+    )}
+    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Dodaj nową fiszkę</DialogTitle>
+          </DialogHeader>
+          <FlashcardForm
+            onSubmit={handleAddFlashcard}
+            onCancel={() => setIsAddDialogOpen(false)}
+            isSubmitting={isSubmitting}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
-}
+};

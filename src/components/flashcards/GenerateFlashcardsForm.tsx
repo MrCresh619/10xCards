@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFlashcardGeneration } from "@/components/hooks/useFlashcardGeneration";
 import { useFlashcardsSave } from "@/components/hooks/useFlashcardsSave";
-import { FlashcardsList } from "./FlashcardsList";
+import { GeneratedFlashcardsList } from "./GeneratedFlashcardsList";
 import { Spinner } from "@/components/ui/spinner";
 import type { FlashcardProposalDTO } from "@/types";
 import { toast } from "sonner";
@@ -46,21 +46,6 @@ export function GenerateFlashcardsForm() {
       return [...filtered, editedFlashcard];
     });
 
-    const isAccepted = acceptedFlashcards.some(
-      f => f.front === originalFlashcard.front && f.back === originalFlashcard.back
-    );
-
-    if (isAccepted) {
-      setAcceptedFlashcards(prev =>
-        prev.map(f =>
-          f.front === originalFlashcard.front && f.back === originalFlashcard.back
-            ? editedFlashcard
-            : f
-        )
-      );
-    } else {
-      setAcceptedFlashcards(prev => [...prev, editedFlashcard]);
-    }
   };
 
   const displayedFlashcards = generatedFlashcards
@@ -197,7 +182,7 @@ export function GenerateFlashcardsForm() {
               </div>
             </motion.div>
 
-            <FlashcardsList
+            <GeneratedFlashcardsList
               flashcards={displayedFlashcards}
               onAccept={handleAccept}
               onReject={handleReject}

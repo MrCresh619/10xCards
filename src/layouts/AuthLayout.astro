@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ClientRouter } from "astro:transitions";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 
 // Definicja typów dla props
 interface Props {
@@ -31,7 +32,7 @@ const { title = "10xCards", description = "System do tworzenia i zarządzania fi
         <header
           class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
         >
-          <div class="container flex h-14 items-center">
+          <div class="flex h-14 items-center justify-between px-4">
             <nav class="flex items-center space-x-4 lg:space-x-6">
               <a href="/generate" class="text-sm font-medium transition-colors hover:text-primary">
                 Generuj
@@ -43,9 +44,12 @@ const { title = "10xCards", description = "System do tworzenia i zarządzania fi
                 Moje Fiszki
               </a>
             </nav>
+            <div class="flex items-center space-x-4">
+              <LogoutButton client:load />
+            </div>
           </div>
         </header>
-        <main class="flex-1">
+        <main class="flex-1 justify-items-center">
           <div class="container py-6">
             <slot />
           </div>

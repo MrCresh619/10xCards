@@ -15,11 +15,17 @@ export const cookieOptions: CookieOptions = {
   sameSite: "lax",
 };
 
-function parseCookieHeader(cookieHeader: string): { name: string; value: string }[] {
-  return cookieHeader.split(";").map(cookie => {
-    const [name, ...rest] = cookie.trim().split("=");
-    return { name, value: rest.join("=") };
-  });
+function parseCookieHeader(cookieHeader: string) {
+  return cookieHeader
+    .split(";")
+    .map(cookie => {
+      const [name, ...rest] = cookie.trim().split("=");
+      return {
+        name: decodeURIComponent(name),
+        value: decodeURIComponent(rest.join("=")),
+      };
+    })
+    .filter(cookie => cookie.name && cookie.value);
 }
 
 export const createSupabaseServerInstance = (context: {
@@ -32,17 +38,27 @@ export const createSupabaseServerInstance = (context: {
     {
       cookieOptions,
       cookies: {
-        getAll() {
-          return parseCookieHeader(context.headers.get("Cookie") ?? "");
+        get(name) {
+          const cookie = context.cookies.get(name);
+          return cookie?.value;
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            context.cookies.set(name, value, options)
-          );
+        set(name, value, options) {
+          context.cookies.set(name, value, options);
+        },
+        remove(name, options) {
+          context.cookies.delete(name, options);
         },
       },
     }
   );
 
   return supabase;
+};
+
+// Eksportuj funkcję do tworzenia klienta dla komponentów React
+export const createSupabaseClient = () => {
+  return createClient<Database>(
+    import.meta.env.SUPABASE_URL,
+    import.meta.env.SUPABASE_KEY
+  );
 };
