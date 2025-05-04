@@ -25,7 +25,7 @@ export const authMiddleware: MiddlewareHandler = async ({ locals, url, redirect 
       return next();
     }
     // Inicjalizacja kontekstu dla innych publicznych ścieżek
-    locals.user = undefined;
+    locals.user = null;
     return next();
   }
 
@@ -54,11 +54,8 @@ export const authMiddleware: MiddlewareHandler = async ({ locals, url, redirect 
       return redirect("/login");
     }
 
-    // Ustawiamy informacje o użytkowniku w kontekście
-    locals.user = {
-      id: user.id,
-      email: user.email || null,
-    };
+    // Ustawiamy pełny obiekt użytkownika w kontekście
+    locals.user = user;
 
     // Kontynuujemy przetwarzanie żądania
     return next();

@@ -34,17 +34,12 @@ export class FlashcardService {
     };
   }
 
-  async getFlashcardById(userId: string, id: string): Promise<FlashcardDTO | null> {
-    const numericId = parseInt(id, 10);
-    if (isNaN(numericId)) {
-      throw new Error("Invalid ID format");
-    }
-
+  async getFlashcardById(userId: string, id: number): Promise<FlashcardDTO | null> {
     const { data, error } = await this.supabase
       .from("flashcards")
       .select("*")
       .eq("user_id", userId)
-      .eq("id", numericId)
+      .eq("id", id)
       .single();
 
     if (error) throw error;
@@ -71,12 +66,7 @@ export class FlashcardService {
     return data as FlashcardDTO;
   }
 
-  async updateFlashcard(userId: string, id: string, flashcard: FlashcardUpdateInput): Promise<FlashcardDTO> {
-    const numericId = parseInt(id, 10);
-    if (isNaN(numericId)) {
-      throw new Error("Invalid ID format");
-    }
-
+  async updateFlashcard(id: number, userId: string, flashcard: FlashcardUpdateInput): Promise<FlashcardDTO> {
     // Sprawdzamy czy aktualizacja zawiera zmianę source na ai-edited
     if (flashcard.source === "ai-edited" && !flashcard.generated_id) {
       throw new Error("generated_id is required when source is ai-edited");
@@ -86,7 +76,7 @@ export class FlashcardService {
       .from("flashcards")
       .update(flashcard)
       .eq("user_id", userId)
-      .eq("id", numericId)
+      .eq("id", id)
       .select()
       .single();
 
@@ -94,17 +84,12 @@ export class FlashcardService {
     return data as FlashcardDTO;
   }
 
-  async deleteFlashcard(userId: string, id: string): Promise<true> {
-    const numericId = parseInt(id, 10);
-    if (isNaN(numericId)) {
-      throw new Error("Invalid ID format");
-    }
-
+  async deleteFlashcard(id: number, userId: string): Promise<true> {
     const { error } = await this.supabase
       .from("flashcards")
       .delete()
       .eq("user_id", userId)
-      .eq("id", numericId);
+      .eq("id", id);
 
     if (error) throw error;
     return true;

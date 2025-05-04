@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
-import { FlashcardService } from "../../../lib/services/flashcard.service";
-import { flashcardQuerySchema, flashcardSchema } from "../../../lib/schemas/flashcard.schema";
+import { FlashcardService } from "@/lib/services/flashcard.service";
+import { flashcardQuerySchema, flashcardSchema } from "@/lib/schemas/flashcard.schema";
 
 export const prerender = false;
 
@@ -14,18 +14,22 @@ export const GET: APIRoute = async ({ locals, url }) => {
     }
 
     const queryParams = Object.fromEntries(url.searchParams.entries());
-    const validatedParams = flashcardQuerySchema.parse(queryParams);
+    const validatedParams = flashcardQuerySchema.parse({
+      ...queryParams,
+      page: Number(queryParams.page) || 1,
+      limit: Number(queryParams.limit) || 10
+    });
 
     const flashcardService = new FlashcardService(locals.supabase);
-    const { data, count } = await flashcardService.getFlashcards(userId, validatedParams);
+    const data = await flashcardService.getFlashcards(userId, validatedParams);
 
     return new Response(
       JSON.stringify({
-        data,
+        data: data.data,
         meta: {
-          total: count,
-          page: validatedParams.page,
-          limit: validatedParams.limit,
+          total: data.pagination.total,
+          page: data.pagination.page,
+          limit: data.pagination.limit,
         },
       }),
       {
@@ -36,6 +40,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
       }
     );
   } catch (error) {
+    console.error("Error in GET /api/flashcards:", error);
     if (error instanceof Error) {
       return new Response(
         JSON.stringify({ error: error.message }),
@@ -63,18 +68,49 @@ export const POST: APIRoute = async ({ locals, request }) => {
     }
 
     const body = await request.json();
-    const validatedData = flashcardSchema.parse(body);
+    
+    // Sprawdzamy czy to jest pojedyncza fiszka czy tablica fiszek
+    if (Array.isArray(body.flashcards)) {
+      // Obsługa wielu fiszek
+      const flashcardService = new FlashcardService(locals.supabase);
+      const results = {
+        data: [],
+        failed: []
+      };
 
-    const flashcardService = new FlashcardService(locals.supabase);
-    const data = await flashcardService.createFlashcard(userId, validatedData);
+      for (const flashcard of body.flashcards) {
+        try {
+          const data = await flashcardService.createFlashcard(userId, flashcard);
+          results.data.push(data);
+        } catch (error) {
+          results.failed.push({
+            flashcard,
+            error: error instanceof Error ? error.message : "Unknown error"
+          });
+        }
+      }
 
-    return new Response(JSON.stringify({ data }), {
-      status: 201,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+      return new Response(JSON.stringify(results), {
+        status: 201,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } else {
+      // Obsługa pojedynczej fiszki
+      const validatedData = flashcardSchema.parse(body);
+      const flashcardService = new FlashcardService(locals.supabase);
+      const data = await flashcardService.createFlashcard(userId, validatedData);
+
+      return new Response(JSON.stringify({ data }), {
+        status: 201,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
   } catch (error) {
+    console.error("Error in POST /api/flashcards:", error);
     if (error instanceof Error) {
       return new Response(
         JSON.stringify({ error: error.message }),

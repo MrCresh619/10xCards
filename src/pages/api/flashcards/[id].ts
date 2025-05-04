@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
-import { FlashcardService } from "../../../lib/services/flashcard.service";
-import { flashcardUpdateSchema } from "../../../lib/schemas/flashcard.schema";
+import { FlashcardService } from "@/lib/services/flashcard.service";
+import { flashcardUpdateSchema } from "@/lib/schemas/flashcard.schema";
 
 export const prerender = false;
 
@@ -21,7 +21,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
     }
 
     const flashcardService = new FlashcardService(locals.supabase);
-    const data = await flashcardService.getFlashcardById(userId, id);
+    const data = await flashcardService.getFlashcardById(userId, Number(id));
 
     if (!data) {
       return new Response(JSON.stringify({ error: "Flashcard not found" }), {
@@ -36,6 +36,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
       },
     });
   } catch (error) {
+    console.error("Error in GET /api/flashcards/[id]:", error);
     if (error instanceof Error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 400,
@@ -67,13 +68,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
     const validatedData = flashcardUpdateSchema.parse(body);
 
     const flashcardService = new FlashcardService(locals.supabase);
-    const data = await flashcardService.updateFlashcard(userId, id, validatedData);
-
-    if (!data) {
-      return new Response(JSON.stringify({ error: "Flashcard not found" }), {
-        status: 404,
-      });
-    }
+    const data = await flashcardService.updateFlashcard(Number(id), userId, validatedData);
 
     return new Response(JSON.stringify({ data }), {
       status: 200,
@@ -82,6 +77,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
       },
     });
   } catch (error) {
+    console.error("Error in PUT /api/flashcards/[id]:", error);
     if (error instanceof Error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 400,
@@ -110,10 +106,11 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
     }
 
     const flashcardService = new FlashcardService(locals.supabase);
-    await flashcardService.deleteFlashcard(userId, id);
+    await flashcardService.deleteFlashcard(Number(id), userId);
 
     return new Response(null, { status: 204 });
   } catch (error) {
+    console.error("Error in DELETE /api/flashcards/[id]:", error);
     if (error instanceof Error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 400,

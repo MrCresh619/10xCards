@@ -1,0 +1,22 @@
+---
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import { FlashcardsList } from "@/components/flashcards/FlashcardsList";
+
+// Pobierz user z locals
+const { user } = Astro.locals;
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+---
+
+<AuthLayout title="Moje Fiszki - 10xCards">
+  <div class="space-y-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-3xl font-bold tracking-tight">Moje Fiszki</h1>
+      {/* TODO: Implementacja przycisku dodawania nowej fiszki */}
+    </div>
+    
+    <FlashcardsList client:load userId={user.id} />
+  </div>
+</AuthLayout> 
