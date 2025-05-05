@@ -1,0 +1,24 @@
+---
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import { FlashcardDetails } from "@/components/flashcards/FlashcardDetails";
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+// Sprawdź, czy użytkownik jest zalogowany
+if (!Astro.locals.user) {
+  return Astro.redirect("/login");
+}
+
+// Sprawdź, czy podano ID fiszki
+if (!id) {
+  return Astro.redirect("/flashcards");
+}
+---
+
+<AuthLayout title="Szczegóły fiszki">
+  <main class="container mx-auto py-8">
+    <FlashcardDetails client:only="react" />
+  </main>
+</AuthLayout> 

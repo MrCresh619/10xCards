@@ -18,6 +18,7 @@ import { FlashcardForm } from "./FlashcardForm";
 import type { FlashcardFormValues } from "@/lib/validations/flashcard";
 import { toast } from "sonner";
 import type { FlashcardDTO } from "@/types";
+import { ExternalLinkIcon, Edit2Icon, Trash2Icon } from "lucide-react";
 
 interface FlashcardsListProps {
   userId: string;
@@ -100,6 +101,10 @@ export const FlashcardsList = ({ userId }: FlashcardsListProps) => {
     }
   };
 
+  const handleViewDetails = (id: number) => {
+    window.location.href = `/flashcards/${id}`;
+  };
+
   if (error) {
     return (
       <div className="flex items-center justify-center p-6">
@@ -158,10 +163,31 @@ export const FlashcardsList = ({ userId }: FlashcardsListProps) => {
               <p className="line-clamp-3">{flashcard.back}</p>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
-              <Button variant="outline" size="sm" onClick={() => handleEditClick(flashcard)}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleViewDetails(flashcard.id)}
+                className="flex items-center gap-1"
+              >
+                <ExternalLinkIcon size={16} />
+                Szczegóły
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleEditClick(flashcard)}
+                className="flex items-center gap-1"
+              >
+                <Edit2Icon size={16} />
                 Edytuj
               </Button>
-              <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(flashcard)}>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={() => handleDeleteClick(flashcard)}
+                className="flex items-center gap-1"
+              >
+                <Trash2Icon size={16} />
                 Usuń
               </Button>
             </CardFooter>
@@ -248,17 +274,17 @@ export const FlashcardsList = ({ userId }: FlashcardsListProps) => {
     </div>
     )}
     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Dodaj nową fiszkę</DialogTitle>
-          </DialogHeader>
-          <FlashcardForm
-            onSubmit={handleAddFlashcard}
-            onCancel={() => setIsAddDialogOpen(false)}
-            isSubmitting={isSubmitting}
-          />
-        </DialogContent>
-      </Dialog>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Dodaj nową fiszkę</DialogTitle>
+        </DialogHeader>
+        <FlashcardForm
+          onSubmit={handleAddFlashcard}
+          onCancel={() => setIsAddDialogOpen(false)}
+          isSubmitting={isSubmitting}
+        />
+      </DialogContent>
+    </Dialog>
     </>
   );
 };

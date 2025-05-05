@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { FlashcardService } from "@/lib/services/flashcard.service";
 import { flashcardQuerySchema, flashcardSchema } from "@/lib/schemas/flashcard.schema";
+import type { FlashcardDTO } from "@/types";
 
 export const prerender = false;
 
@@ -73,7 +74,13 @@ export const POST: APIRoute = async ({ locals, request }) => {
     if (Array.isArray(body.flashcards)) {
       // Obsługa wielu fiszek
       const flashcardService = new FlashcardService(locals.supabase);
-      const results = {
+      const results: {
+        data: FlashcardDTO[];
+        failed: Array<{
+          flashcard: any;
+          error: string;
+        }>;
+      } = {
         data: [],
         failed: []
       };
