@@ -49,6 +49,14 @@ Key features:
   - Access to multiple AI models
   - Cost-effective API management
 
+### Testing
+
+- [Vitest](https://vitest.dev/) - Unit testing framework optimized for Vite/Astro
+- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) - React component testing
+- [Playwright](https://playwright.dev/) - End-to-end testing
+- [MSW](https://mswjs.io/) - API mocking for tests
+- [Lighthouse](https://developers.google.com/web/tools/lighthouse) - Performance testing
+
 ### CI/CD & Hosting
 
 - GitHub Actions - CI/CD pipelines
@@ -100,6 +108,11 @@ The application will be available at `http://localhost:4321`
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
+- `npm run test` - Run unit tests with Vitest
+- `npm run test:watch` - Run unit tests in watch mode
+- `npm run test:coverage` - Generate test coverage report
+- `npm run test:e2e` - Run end-to-end tests with Playwright
+- `npm run test:e2e:ui` - Run Playwright tests with UI
 - `npm run lint` - Run ESLint
 - `npm run lint:fix` - Fix ESLint issues
 - `npm run format` - Format code with Prettier

@@ -70,6 +70,7 @@ export const useFlashcards = (userId: string) => {
       });
       
       if (!response.ok) {
+        setError("Wystąpił błąd podczas aktualizacji fiszki");
         throw new Error("Wystąpił błąd podczas aktualizacji fiszki");
       }
       
@@ -77,10 +78,12 @@ export const useFlashcards = (userId: string) => {
         await loadFlashcards(flashcards.pagination.page);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Wystąpił błąd podczas aktualizacji fiszki");
+      if (!error) {
+        setError(err instanceof Error ? err.message : "Wystąpił błąd podczas aktualizacji fiszki");
+      }
       throw err;
     }
-  }, [loadFlashcards, flashcards]);
+  }, [loadFlashcards, flashcards, error]);
 
   const deleteFlashcard = useCallback(async (id: number) => {
     setError(null);
@@ -90,6 +93,7 @@ export const useFlashcards = (userId: string) => {
       });
       
       if (!response.ok) {
+        setError("Wystąpił błąd podczas usuwania fiszki");
         throw new Error("Wystąpił błąd podczas usuwania fiszki");
       }
       
@@ -97,10 +101,12 @@ export const useFlashcards = (userId: string) => {
         await loadFlashcards(flashcards.pagination.page);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Wystąpił błąd podczas usuwania fiszki");
+      if (!error) {
+        setError(err instanceof Error ? err.message : "Wystąpił błąd podczas usuwania fiszki");
+      }
       throw err;
     }
-  }, [loadFlashcards, flashcards]);
+  }, [loadFlashcards, flashcards, error]);
 
   return {
     flashcards,
