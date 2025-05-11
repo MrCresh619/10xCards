@@ -11,5 +11,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: Say Hello
         run: echo "Hello, GitHub Actions!"
-      - run npm ci
-      - run npm test
+      - npm run ci
+      - npm run test
