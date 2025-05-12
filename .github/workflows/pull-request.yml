@@ -1,0 +1,86 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  lint:
+    name: Lintowanie kodu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kodu
+        uses: actions/checkout@v4
+
+      - name: Ustawienie Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Instalacja zależności
+        run: npm ci
+
+      - name: Uruchomienie lintera
+        run: npm run lint
+
+  test:
+    name: Testy jednostkowe
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout kodu
+        uses: actions/checkout@v4
+
+      - name: Ustawienie Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Instalacja zależności
+        run: npm ci
+
+      - name: Uruchomienie testów z coverage
+        run: npm run test:coverage
+
+      - name: Zapisanie raportu pokrycia jako artefakt
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 5
+
+  status-comment:
+    name: Komentarz statusu
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - name: Checkout kodu
+        uses: actions/checkout@v4
+
+      - name: Pobranie raportu pokrycia
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage
+
+      - name: Odczytanie danych pokrycia
+        id: coverage
+        run: |
+          COVERAGE=$(grep -oP 'All files[^%]+\K[0-9\.]+' coverage/coverage-summary.txt || echo "nieznane")
+          echo "COVERAGE_VALUE=$COVERAGE" >> $GITHUB_OUTPUT
+
+      - name: Dodanie komentarza do PR
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## Status CI dla PR #${{ github.event.pull_request.number }}
+            
+            ✅ **Lintowanie**: Zakończone pomyślnie
+            ✅ **Testy**: Zakończone pomyślnie
+            📊 **Pokrycie kodu**: ${{ steps.coverage.outputs.COVERAGE_VALUE }}%
+            
+            Build aktualny na commit: ${{ github.sha }} 
