@@ -56,11 +56,7 @@ export function FlashcardForm({
             <FormItem>
               <FormLabel>Przód fiszki (pytanie)</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Wprowadź pytanie..."
-                  className="min-h-[100px]"
-                  {...field}
-                />
+                <Textarea placeholder="Wprowadź pytanie..." className="min-h-[100px]" {...field} />
               </FormControl>
               <div className="text-xs text-muted-foreground text-right mt-1">
                 {field.value.length}/200 znaków
@@ -104,4 +100,4 @@ export function FlashcardForm({
       </form>
     </Form>
   );
-} 
+}

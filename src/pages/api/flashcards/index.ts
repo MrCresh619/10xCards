@@ -18,7 +18,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
     const validatedParams = flashcardQuerySchema.parse({
       ...queryParams,
       page: Number(queryParams.page) || 1,
-      limit: Number(queryParams.limit) || 10
+      limit: Number(queryParams.limit) || 10,
     });
 
     const flashcardService = new FlashcardService(locals.supabase);
@@ -43,19 +43,13 @@ export const GET: APIRoute = async ({ locals, url }) => {
   } catch (error) {
     console.error("Error in GET /api/flashcards:", error);
     if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        {
-          status: 400,
-        }
-      );
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 400,
+      });
     }
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-      }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+    });
   }
 };
 
@@ -69,20 +63,20 @@ export const POST: APIRoute = async ({ locals, request }) => {
     }
 
     const body = await request.json();
-    
+
     // Sprawdzamy czy to jest pojedyncza fiszka czy tablica fiszek
     if (Array.isArray(body.flashcards)) {
       // Obsługa wielu fiszek
       const flashcardService = new FlashcardService(locals.supabase);
       const results: {
         data: FlashcardDTO[];
-        failed: Array<{
-          flashcard: any;
+        failed: {
+          flashcard: Record<string, unknown>;
           error: string;
-        }>;
+        }[];
       } = {
         data: [],
-        failed: []
+        failed: [],
       };
 
       for (const flashcard of body.flashcards) {
@@ -92,7 +86,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
         } catch (error) {
           results.failed.push({
             flashcard,
-            error: error instanceof Error ? error.message : "Unknown error"
+            error: error instanceof Error ? error.message : "Unknown error",
           });
         }
       }
@@ -119,18 +113,12 @@ export const POST: APIRoute = async ({ locals, request }) => {
   } catch (error) {
     console.error("Error in POST /api/flashcards:", error);
     if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        {
-          status: 400,
-        }
-      );
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 400,
+      });
     }
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-      }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+    });
   }
-}; 
+};

@@ -73,7 +73,7 @@
     **Response (200 OK):** Updated flashcard record.
     **Errors:** 400 for validation errors; 404 if not found; 401 if unauthorized.
 
-- **DELETE /flashcards/{id}**  
+- **DELETE /flashcards/{id}**
 
 - **POST /flashcards**  
   **Description:** Creates one or more flashcards manually or from AI generation.

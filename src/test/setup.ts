@@ -1,7 +1,7 @@
-import '@testing-library/jest-dom';
-import { vi, expect, afterEach, beforeAll, afterAll } from 'vitest';
-import { cleanup } from '@testing-library/react';
-import * as matchers from '@testing-library/jest-dom/matchers';
+import "@testing-library/jest-dom";
+import { vi, expect, afterEach, beforeAll, afterAll } from "vitest";
+import { cleanup } from "@testing-library/react";
+import * as matchers from "@testing-library/jest-dom/matchers";
 
 // Rozszerzenie asercji Vitest o matchers z jest-dom
 expect.extend(matchers);
@@ -30,9 +30,9 @@ afterAll(() => {
 });
 
 // Mock dla window.fetch
-Object.defineProperty(window, 'fetch', {
+Object.defineProperty(window, "fetch", {
   value: vi.fn(),
-  writable: true
+  writable: true,
 });
 
 // Mock dla localStorage
@@ -45,7 +45,7 @@ const localStorageMock = {
   key: vi.fn(),
 };
 
-Object.defineProperty(window, 'localStorage', {
+Object.defineProperty(window, "localStorage", {
   value: localStorageMock,
-  writable: true
-}); 
+  writable: true,
+});

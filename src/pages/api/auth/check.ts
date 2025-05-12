@@ -7,9 +7,12 @@ export const GET: APIRoute = async ({ request, cookies }) => {
   try {
     // Inicjalizacja Supabase
     const supabase = createSupabaseServerInstance({ cookies, headers: request.headers });
-    
+
     // Sprawdzenie sesji użytkownika
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
     if (error || !user) {
       console.error("Błąd sprawdzania sesji Supabase:", error);
@@ -25,12 +28,12 @@ export const GET: APIRoute = async ({ request, cookies }) => {
           email: user.email,
         },
       }),
-      { 
+      {
         status: 200,
         headers: {
           "Content-Type": "application/json",
-          "Cache-Control": "no-store, max-age=0"
-        }
+          "Cache-Control": "no-store, max-age=0",
+        },
       }
     );
   } catch (error) {

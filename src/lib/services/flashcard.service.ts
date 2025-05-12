@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../db/database.types";
-import type { FlashcardInput, FlashcardQueryParams, FlashcardUpdateInput } from "../schemas/flashcard.schema";
+import type {
+  FlashcardInput,
+  FlashcardQueryParams,
+  FlashcardUpdateInput,
+} from "../schemas/flashcard.schema";
 import type { FlashcardDTO, FlashcardsListDTO } from "../../types";
 
 export class FlashcardService {
@@ -9,7 +13,7 @@ export class FlashcardService {
   async getFlashcards(userId: string, params: FlashcardQueryParams): Promise<FlashcardsListDTO> {
     const { page, limit, search, sort } = params;
     const offset = (page - 1) * limit;
-    
+
     let query = this.supabase
       .from("flashcards")
       .select("*", { count: "exact" })
@@ -29,8 +33,8 @@ export class FlashcardService {
       pagination: {
         page,
         limit,
-        total: count ?? 0
-      }
+        total: count ?? 0,
+      },
     };
   }
 
@@ -52,13 +56,15 @@ export class FlashcardService {
 
     const { data, error } = await this.supabase
       .from("flashcards")
-      .insert([{ 
-        front: flashcard.front,
-        back: flashcard.back,
-        source: flashcard.source,
-        generated_id,
-        user_id: userId 
-      }])
+      .insert([
+        {
+          front: flashcard.front,
+          back: flashcard.back,
+          source: flashcard.source,
+          generated_id,
+          user_id: userId,
+        },
+      ])
       .select()
       .single();
 
@@ -66,7 +72,11 @@ export class FlashcardService {
     return data as FlashcardDTO;
   }
 
-  async updateFlashcard(id: number, userId: string, flashcard: FlashcardUpdateInput): Promise<FlashcardDTO> {
+  async updateFlashcard(
+    id: number,
+    userId: string,
+    flashcard: FlashcardUpdateInput
+  ): Promise<FlashcardDTO> {
     // Sprawdzamy czy aktualizacja zawiera zmianę source na ai-edited
     if (flashcard.source === "ai-edited" && !flashcard.generated_id) {
       throw new Error("generated_id is required when source is ai-edited");

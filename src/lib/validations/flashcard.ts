@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { FlashcardSource } from "@/types";
 
 export const flashcardFormSchema = z.discriminatedUnion("source", [
   z.object({
@@ -28,4 +27,4 @@ export const flashcardFormSchema = z.discriminatedUnion("source", [
   }),
 ]);
 
-export type FlashcardFormValues = z.infer<typeof flashcardFormSchema>; 
+export type FlashcardFormValues = z.infer<typeof flashcardFormSchema>;

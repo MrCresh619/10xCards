@@ -1,7 +1,11 @@
 import { z } from "zod";
 import type { FlashcardSource } from "../../types";
 
-export const flashcardSourceEnum = z.enum(["manual", "ai-full", "ai-edited"] as const satisfies readonly FlashcardSource[]);
+export const flashcardSourceEnum = z.enum([
+  "manual",
+  "ai-full",
+  "ai-edited",
+] as const satisfies readonly FlashcardSource[]);
 
 // Schemat dla ręcznie tworzonych fiszek
 const manualFlashcardSchema = z.object({
@@ -40,4 +44,4 @@ export const flashcardQuerySchema = z.object({
 
 export type FlashcardInput = z.infer<typeof flashcardSchema>;
 export type FlashcardUpdateInput = z.infer<typeof flashcardUpdateSchema>;
-export type FlashcardQueryParams = z.infer<typeof flashcardQuerySchema>; 
+export type FlashcardQueryParams = z.infer<typeof flashcardQuerySchema>;

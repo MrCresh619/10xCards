@@ -7,23 +7,27 @@ Celem endpointów jest umożliwienie użytkownikom pobierania, edytowania oraz u
 ## 2. Przegląd endpointów
 
 ### GET /flashcards
+
 - **Opis:** Pobiera listę fiszek zalogowanego użytkownika z obsługą paginacji (parametry: `page`, `limit`), sortowania (np. po `created_at`), oraz opcjonalnego filtrowania (np. wyszukiwanie po tekście w polach `front` lub `back`).
 - **Walidacja:** Sprawdzenie autentykacji użytkownika oraz walidacja parametrów zapytania.
-- **Integracja z Supabase:** Użycie zapytania SELECT z warunkiem 
+- **Integracja z Supabase:** Użycie zapytania SELECT z warunkiem
   `WHERE user_id = <id zalogowanego użytkownika>`.
 
 ### GET /flashcards/{id}
+
 - **Opis:** Pobiera szczegóły pojedynczej fiszki na podstawie identyfikatora `id`.
 - **Walidacja:** Weryfikacja autentykacji oraz potwierdzenie, że fiszka należy do użytkownika.
 - **Błędy:** Zwraca 404 gdy rekord nie istnieje lub 401 w przypadku braku autoryzacji.
 
 ### PUT /flashcards/{id}
+
 - **Opis:** Aktualizuje fiszkę. Umożliwia zmianę pól: `front`, `back`, `source` (przy czym przy zmianie na `ai-full` lub `ai-edited` wymagana jest obecność `generated_id`).
 - **Walidacja:** Walidacja danych wejściowych przy pomocy Zod. Sprawdzanie minimalnej i maksymalnej długości pól (`front`: 3-200 znaków, `back`: 3-500 znaków) oraz weryfikacja poprawności wartości `source`.
 - **Integracja z Supabase:** Wykonanie operacji UPDATE z warunkiem, że rekord należy do użytkownika (`WHERE id = <id> AND user_id = <id użytkownika>`).
 - **Błędy:** 400 przy błędach walidacji, 404 gdy rekord nie istnieje, 401 dla braku autoryzacji.
 
 ### DELETE /flashcards/{id}
+
 - **Opis:** Usuwa wskazaną fiszkę.
 - **Walidacja:** Autoryzacja użytkownika i potwierdzenie, że dana fiszka należy do niego.
 - **Integracja z Supabase:** Operacja DELETE z warunkiem `WHERE id = <id> AND user_id = <id użytkownika>`.
@@ -55,22 +59,26 @@ Celem endpointów jest umożliwienie użytkownikom pobierania, edytowania oraz u
 ## 7. Plan implementacji krok po kroku
 
 1. Przygotowanie środowiska:
+
    - Potwierdzenie poprawności konfiguracji projektu Astro oraz instalacja zależności (TypeScript, React, Tailwind, Shadcn/ui).
    - Weryfikacja konfiguracji Supabase i utworzenie klienta w `src/db/supabase.client.ts`.
 
 2. Weryfikacja struktury endpointów:
+
    - Sprawdzenie, czy katalog `src/pages/api/flashcards` został utworzony.
    - Weryfikacja istniejących endpointów: GET /flashcards, GET /flashcards/{id}, PUT /flashcards/{id}, DELETE /flashcards/{id}.
    - Weryfikacja endpointu odpowiedzialnego za generowanie i zapisywanie fiszek (POST /flashcards, jeśli jest dostępny).
 
 3. Autoryzacja i integracja z Supabase:
+
    - Potwierdzenie zaimplementowania autoryzacji przez middleware oraz poprawnego pobierania klienta Supabase z `context.locals`.
    - Sprawdzenie, że wszystkie zapytania SQL zawierają warunek `user_id = <id użytkownika>`.
 
 4. Walidacja i obsługa błędów:
+
    - Weryfikacja, że dane wejściowe są walidowane przy użyciu Zod (dotyczy endpointów PUT, ewentualnie POST oraz parametrów zapytań dla GET).
    - Upewnienie się, że odpowiednie kody statusu (400, 401, 404) oraz komunikaty błędów są prawidłowo zwracane.
 
-6. Testowanie i weryfikacja:
+5. Testowanie i weryfikacja:
    - Przeprowadzenie testów jednostkowych i integracyjnych dla wszystkich zaimplementowanych endpointów.
    - Weryfikacja scenariuszy autoryzacji, generowania, zapisywania, aktualizacji i usuwania fiszek.

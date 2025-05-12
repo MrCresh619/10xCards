@@ -45,7 +45,6 @@ export function GenerateFlashcardsForm() {
       );
       return [...filtered, editedFlashcard];
     });
-
   };
 
   const displayedFlashcards = generatedFlashcards
