@@ -21,12 +21,14 @@ AI - Komunikacja z modelami przez usługę Openrouter.ai:
 Testy - Kompleksowa strategia zapewnienia jakości:
 
 - Testy jednostkowe:
+
   - Vitest jako framework testowy zoptymalizowany pod Vite/Astro, kompatybilny z API Jest
   - React Testing Library do testowania komponentów React z naciskiem na interakcje użytkownika
   - @testing-library/dom do testowania interakcji z DOM, niezależnie od frameworka
   - MSW (Mock Service Worker) do mockowania API w testach
 
 - Testy End-to-End:
+
   - Playwright jako kompleksowe narzędzie wspierające wszystkie nowoczesne przeglądarki
   - Testy scenariuszy użytkownika od logowania po operacje CRUD w Supabase
   - Automatyczna weryfikacja dostępności (WCAG) w testach e2e

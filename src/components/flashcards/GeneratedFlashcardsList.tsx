@@ -52,14 +52,14 @@ export function GeneratedFlashcardsList({
         setValidationError("Pytanie musi zawierać od 3 do 200 znaków");
         return;
       }
-      
+
       if (editedBack.length < 3 || editedBack.length > 500) {
         setValidationError("Odpowiedź musi zawierać od 3 do 500 znaków");
         return;
       }
 
       const originalFlashcard = localFlashcards[selectedFlashcardIndex];
-      
+
       // Tworzymy edytowaną fiszkę
       const editedFlashcard: FlashcardProposalDTO = {
         ...originalFlashcard,
@@ -67,22 +67,22 @@ export function GeneratedFlashcardsList({
         back: editedBack,
         source: "ai-edited",
       };
-      
+
       // Aktualizacja lokalnego stanu fiszek
       setLocalFlashcards(prevFlashcards => {
         const updatedFlashcards = [...prevFlashcards];
         updatedFlashcards[selectedFlashcardIndex] = editedFlashcard;
         return updatedFlashcards;
       });
-      
+
       // WAŻNE: najpierw informujemy o edycji (nie powoduje to zaakceptowania)
       onEdit(originalFlashcard, editedFlashcard);
-      
+
       setIsEditDialogOpen(false);
       setSelectedFlashcardIndex(null);
       setValidationError(null);
     } catch (error: unknown) {
-      console.error('Błąd podczas edycji fiszki:', error);
+      console.error("Błąd podczas edycji fiszki:", error);
       if (error instanceof Error) {
         setValidationError(error.message);
       } else {
@@ -94,11 +94,11 @@ export function GeneratedFlashcardsList({
   const handleAcceptToggle = (index: number) => {
     const flashcard = localFlashcards[index];
     const isCurrentlyAccepted = acceptedFlashcardsIndices.includes(index);
-    
+
     if (isCurrentlyAccepted) {
       // Odrzucanie fiszki - aktualizujemy stan lokalny
       setAcceptedFlashcardsIndices(prev => prev.filter(idx => idx !== index));
-      
+
       // Informujemy komponent nadrzędny
       if (onReject) {
         onReject(flashcard);
@@ -106,7 +106,7 @@ export function GeneratedFlashcardsList({
     } else {
       // Akceptowanie fiszki - aktualizujemy stan lokalny
       setAcceptedFlashcardsIndices(prev => [...prev, index]);
-      
+
       // Informujemy komponent nadrzędny
       onAccept(flashcard);
     }
@@ -176,10 +176,13 @@ export function GeneratedFlashcardsList({
               </Alert>
             )}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Przód fiszki</label>
+              <label htmlFor="front-input" className="text-sm font-medium">
+                Przód fiszki
+              </label>
               <Textarea
+                id="front-input"
                 value={editedFront}
-                onChange={(e) => {
+                onChange={e => {
                   setEditedFront(e.target.value);
                   setValidationError(null);
                 }}
@@ -190,10 +193,13 @@ export function GeneratedFlashcardsList({
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Tył fiszki</label>
+              <label htmlFor="back-input" className="text-sm font-medium">
+                Tył fiszki
+              </label>
               <Textarea
+                id="back-input"
                 value={editedBack}
-                onChange={(e) => {
+                onChange={e => {
                   setEditedBack(e.target.value);
                   setValidationError(null);
                 }}
@@ -207,13 +213,11 @@ export function GeneratedFlashcardsList({
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Anuluj
               </Button>
-              <Button onClick={handleEditSubmit}>
-                Zapisz zmiany
-              </Button>
+              <Button onClick={handleEditSubmit}>Zapisz zmiany</Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
     </>
   );
-} 
+}

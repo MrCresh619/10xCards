@@ -12,7 +12,7 @@ const PUBLIC_PATHS = [
   "/api/auth/check",
   "/api/auth/refresh-token",
   "/assets",
-  "/favicon.ico"
+  "/favicon.ico",
 ];
 
 export const authMiddleware: MiddlewareHandler = async ({ locals, url, redirect }, next) => {
@@ -37,18 +37,15 @@ export const authMiddleware: MiddlewareHandler = async ({ locals, url, redirect 
 
     if (userError || !user) {
       console.error("Błąd autoryzacji:", userError?.message);
-      
+
       if (url.pathname.startsWith("/api/")) {
-        return new Response(
-          JSON.stringify({ error: "Nieautoryzowany dostęp" }), 
-          { 
-            status: 401,
-            headers: { 
-              "Content-Type": "application/json",
-              "Cache-Control": "no-store"
-            }
-          }
-        );
+        return new Response(JSON.stringify({ error: "Nieautoryzowany dostęp" }), {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-store",
+          },
+        });
       }
 
       return redirect("/login");
@@ -59,21 +56,17 @@ export const authMiddleware: MiddlewareHandler = async ({ locals, url, redirect 
 
     // Kontynuujemy przetwarzanie żądania
     return next();
-
   } catch (error) {
     console.error("Krytyczny błąd w middleware auth:", error);
-    
+
     if (url.pathname.startsWith("/api/")) {
-      return new Response(
-        JSON.stringify({ error: "Błąd serwera" }), 
-        { 
-          status: 500,
-          headers: { 
-            "Content-Type": "application/json",
-            "Cache-Control": "no-store"
-          }
-        }
-      );
+      return new Response(JSON.stringify({ error: "Błąd serwera" }), {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+        },
+      });
     }
 
     return redirect("/login");

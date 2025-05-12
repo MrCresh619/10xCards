@@ -28,7 +28,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
     return null;
   });
-  
+
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       return sessionStorage.getItem("auth_status") === "true";
@@ -47,37 +47,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const data = await response.json();
         setUser(data.user);
         setIsAuthenticated(true);
-        
+
         // Zapisujemy stan w sessionStorage
         if (typeof window !== "undefined") {
           sessionStorage.setItem("auth_user", JSON.stringify(data.user));
           sessionStorage.setItem("auth_status", "true");
         }
-        
+
         return true;
       } else {
         setUser(null);
         setIsAuthenticated(false);
-        
+
         // Czyścimy sessionStorage
         if (typeof window !== "undefined") {
           sessionStorage.removeItem("auth_user");
           sessionStorage.setItem("auth_status", "false");
         }
-        
+
         return false;
       }
     } catch (error) {
       console.error("Błąd sprawdzania autoryzacji:", error);
       setUser(null);
       setIsAuthenticated(false);
-      
+
       // Czyścimy sessionStorage
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("auth_user");
         sessionStorage.setItem("auth_status", "false");
       }
-      
+
       return false;
     }
   };
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setUser(null);
       setIsAuthenticated(false);
-      
+
       // Czyścimy sessionStorage
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("auth_user");
