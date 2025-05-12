@@ -15,19 +15,6 @@ export const cookieOptions: CookieOptions = {
   sameSite: "lax",
 };
 
-function parseCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map(cookie => {
-      const [name, ...rest] = cookie.trim().split("=");
-      return {
-        name: decodeURIComponent(name),
-        value: decodeURIComponent(rest.join("=")),
-      };
-    })
-    .filter(cookie => cookie.name && cookie.value);
-}
-
 export const createSupabaseServerInstance = (context: {
   headers: Headers;
   cookies: AstroCookies;
@@ -57,8 +44,5 @@ export const createSupabaseServerInstance = (context: {
 
 // Eksportuj funkcję do tworzenia klienta dla komponentów React
 export const createSupabaseClient = () => {
-  return createClient<Database>(
-    import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_KEY
-  );
+  return createClient<Database>(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY);
 };

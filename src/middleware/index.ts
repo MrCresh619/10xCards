@@ -2,14 +2,25 @@ import { defineMiddleware } from "astro:middleware";
 import { createSupabaseServerInstance } from "@/db/supabase.client";
 
 // Lista publicznych ścieżek
-const PUBLIC_PATHS = ["/login", "/register", "/api/auth/login", "/api/auth/register", "/api/auth/check"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/register",
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/check",
+];
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const supabase = createSupabaseServerInstance({ cookies: context.cookies, headers: context.request.headers });
+  const supabase = createSupabaseServerInstance({
+    cookies: context.cookies,
+    headers: context.request.headers,
+  });
   context.locals.supabase = supabase;
 
   // Pobierz dane użytkownika
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   context.locals.user = user;
 
   // Obsługa przekierowania ze strony głównej

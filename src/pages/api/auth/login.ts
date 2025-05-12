@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // Generujemy token JWT dla AuthProvider
     const token = generateJWT({
       userId: authData.user.id,
-      email: authData.user.email
+      email: authData.user.email,
     });
 
     return new Response(
@@ -41,7 +41,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           id: authData.user.id,
           email: authData.user.email,
         },
-        token: token
+        token: token,
       }),
       { status: 200 }
     );

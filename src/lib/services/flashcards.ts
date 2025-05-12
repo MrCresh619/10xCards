@@ -1,11 +1,18 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
-import type { CreateFlashcardCommand, FlashcardsListDTO, UpdateFlashcardCommand, CreateFlashcardsCommand, CreateFlashcardsResponseDTO, FlashcardDTO } from "@/types";
+import type {
+  CreateFlashcardCommand,
+  FlashcardsListDTO,
+  UpdateFlashcardCommand,
+  CreateFlashcardsCommand,
+  CreateFlashcardsResponseDTO,
+  FlashcardDTO,
+} from "@/types";
 
 export class FlashcardsService {
   constructor(private readonly supabase: SupabaseClient<Database>) {}
 
-  async getFlashcards(userId: string, page: number = 1, limit: number = 10): Promise<FlashcardsListDTO> {
+  async getFlashcards(userId: string, page = 1, limit = 10): Promise<FlashcardsListDTO> {
     const start = (page - 1) * limit;
 
     // Pobierz total count
@@ -36,7 +43,10 @@ export class FlashcardsService {
     };
   }
 
-  private async createSingleFlashcard(flashcard: CreateFlashcardCommand, userId: string): Promise<FlashcardDTO> {
+  private async createSingleFlashcard(
+    flashcard: CreateFlashcardCommand,
+    userId: string
+  ): Promise<FlashcardDTO> {
     const { data, error } = await this.supabase
       .from("flashcards")
       .insert({
@@ -60,7 +70,10 @@ export class FlashcardsService {
     return this.createSingleFlashcard(command, userId);
   }
 
-  async createFlashcards(command: CreateFlashcardsCommand, userId: string): Promise<CreateFlashcardsResponseDTO> {
+  async createFlashcards(
+    command: CreateFlashcardsCommand,
+    userId: string
+  ): Promise<CreateFlashcardsResponseDTO> {
     const results: CreateFlashcardsResponseDTO = {
       data: [],
       failed: [],
@@ -125,4 +138,4 @@ export class FlashcardsService {
       throw new Error(`Błąd podczas usuwania fiszki: ${error.message}`);
     }
   }
-} 
+}

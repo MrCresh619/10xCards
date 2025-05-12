@@ -16,8 +16,8 @@ jobs:
       - name: Ustawienie Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+          node-version-file: ".nvmrc"
+          cache: "npm"
 
       - name: Instalacja zależności
         run: npm ci
@@ -36,8 +36,8 @@ jobs:
       - name: Ustawienie Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
+          node-version-file: ".nvmrc"
+          cache: "npm"
 
       - name: Instalacja zależności
         run: npm ci
@@ -56,6 +56,9 @@ jobs:
     name: Komentarz statusu
     runs-on: ubuntu-latest
     needs: [lint, test]
+    permissions:
+      pull-requests: write
+      issues: write
     steps:
       - name: Checkout kodu
         uses: actions/checkout@v4
@@ -78,9 +81,9 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             ## Status CI dla PR #${{ github.event.pull_request.number }}
-            
+
             ✅ **Lintowanie**: Zakończone pomyślnie
             ✅ **Testy**: Zakończone pomyślnie
             📊 **Pokrycie kodu**: ${{ steps.coverage.outputs.COVERAGE_VALUE }}%
-            
-            Build aktualny na commit: ${{ github.sha }} 
+
+            Build aktualny na commit: ${{ github.sha }}

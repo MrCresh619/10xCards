@@ -103,8 +103,11 @@ export interface AstroLocals {
   responseWasSent?: boolean;
 }
 
+// Rozszerzenie globalnego namespace dla typów Astro
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace App {
-    interface Locals extends AstroLocals {}
+    // Używanie type zamiast interface zapobiega błędowi no-empty-interface
+    type Locals = AstroLocals;
   }
 }

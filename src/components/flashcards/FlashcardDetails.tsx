@@ -1,9 +1,22 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeftIcon, ArrowRightIcon, ChevronLeftIcon, EditIcon, TrashIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { FlashcardForm } from "./FlashcardForm";
 import type { FlashcardFormValues } from "@/lib/validations/flashcard";
 import { toast } from "sonner";
@@ -23,8 +36,8 @@ export function FlashcardDetails() {
   // Pobieramy ID z URL dopiero po załadowaniu po stronie klienta
   useEffect(() => {
     // Sprawdzamy czy kod jest wykonywany w przeglądarce
-    if (typeof window !== 'undefined') {
-      const urlId = window.location.pathname.split('/').pop();
+    if (typeof window !== "undefined") {
+      const urlId = window.location.pathname.split("/").pop();
       setId(urlId || null);
     }
   }, []);
@@ -33,17 +46,17 @@ export function FlashcardDetails() {
   useEffect(() => {
     const fetchFlashcard = async () => {
       if (!id) return;
-      
+
       try {
         setIsLoading(true);
         setError(null);
-        
+
         const response = await fetch(`/api/flashcards/${id}`);
-        
+
         if (!response.ok) {
           throw new Error("Nie udało się pobrać fiszki");
         }
-        
+
         const { data } = await response.json();
         setFlashcard(data);
       } catch (err) {
@@ -52,7 +65,7 @@ export function FlashcardDetails() {
         setIsLoading(false);
       }
     };
-    
+
     fetchFlashcard();
   }, [id]);
 
@@ -66,10 +79,10 @@ export function FlashcardDetails() {
 
   const handleEditFlashcard = async (values: FlashcardFormValues) => {
     if (!flashcard) return;
-    
+
     try {
       setIsSubmitting(true);
-      
+
       const response = await fetch(`/api/flashcards/${flashcard.id}`, {
         method: "PUT",
         headers: {
@@ -82,17 +95,19 @@ export function FlashcardDetails() {
           generated_id: values.generated_id,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error("Nie udało się zaktualizować fiszki");
       }
-      
+
       const { data } = await response.json();
       setFlashcard(data);
       setIsEditDialogOpen(false);
       toast.success("Fiszka została zaktualizowana pomyślnie");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Wystąpił błąd podczas aktualizacji fiszki");
+      toast.error(
+        error instanceof Error ? error.message : "Wystąpił błąd podczas aktualizacji fiszki"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -104,23 +119,23 @@ export function FlashcardDetails() {
 
   const handleDeleteFlashcard = async () => {
     if (!flashcard) return;
-    
+
     try {
       setIsSubmitting(true);
-      
+
       const response = await fetch(`/api/flashcards/${flashcard.id}`, {
         method: "DELETE",
       });
-      
+
       if (!response.ok) {
         throw new Error("Nie udało się usunąć fiszki");
       }
-      
+
       setIsDeleteDialogOpen(false);
       toast.success("Fiszka została usunięta pomyślnie");
-      
+
       // Przekierowanie na stronę z listą fiszek
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         window.location.href = "/flashcards";
       }
     } catch (error) {
@@ -131,7 +146,7 @@ export function FlashcardDetails() {
   };
 
   const handleGoBackToList = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.location.href = "/flashcards";
     }
   };
@@ -163,11 +178,7 @@ export function FlashcardDetails() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <Button 
-          variant="outline" 
-          onClick={handleGoBackToList}
-          className="flex items-center gap-2"
-        >
+        <Button variant="outline" onClick={handleGoBackToList} className="flex items-center gap-2">
           <ChevronLeftIcon size={16} />
           Powrót do listy
         </Button>
@@ -202,16 +213,13 @@ export function FlashcardDetails() {
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={handleFlip}
                       aria-label={isFlipped ? "Pokaż pytanie" : "Pokaż odpowiedź"}
                     >
-                      {isFlipped 
-                        ? <ArrowLeftIcon size={16} /> 
-                        : <ArrowRightIcon size={16} />
-                      }
+                      {isFlipped ? <ArrowLeftIcon size={16} /> : <ArrowRightIcon size={16} />}
                     </Button>
                   </div>
                 </CardFooter>
@@ -220,16 +228,12 @@ export function FlashcardDetails() {
           </AnimatePresence>
 
           <div className="mt-6 flex justify-end gap-2">
-            <Button 
-              variant="outline" 
-              onClick={handleEditClick}
-              className="flex items-center gap-2"
-            >
+            <Button variant="outline" onClick={handleEditClick} className="flex items-center gap-2">
               <EditIcon size={16} />
               Edytuj
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleDeleteClick}
               className="flex items-center gap-2"
             >
@@ -289,4 +293,4 @@ export function FlashcardDetails() {
       </Dialog>
     </div>
   );
-} 
+}
