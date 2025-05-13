@@ -90,25 +90,3 @@ jobs:
           name: build-output
           path: dist/
           retention-days: 5
-
-  status-comment:
-    name: Komentarz statusu
-    runs-on: ubuntu-latest
-    needs: [lint, test, build]
-    if: ${{ github.event.inputs.issue_number != '' }}
-    permissions:
-      pull-requests: write
-      issues: write
-    steps:
-      - name: Dodanie komentarza do issue/PR
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          issue-number: ${{ github.event.inputs.issue_number }}
-          body: |
-            ## 🚀 CI/CD zakończone pomyślnie
-            
-            ✅ **Lint**: Zakończone
-            ✅ **Testy**: Zakończone
-            ✅ **Build**: Zakończone
-            
-            Powód uruchomienia: ${{ github.event.inputs.reason }}
