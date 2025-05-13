@@ -17,6 +17,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@astrojs/node": "^9.2.1",
     "@astrojs/react": "4.2.2",
     "@astrojs/sitemap": "3.3.0",
     "@hookform/resolvers": "^5.0.1",
