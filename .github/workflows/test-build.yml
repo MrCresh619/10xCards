@@ -9,7 +9,7 @@ on:
         default: 'Ręczne uruchomienie'
       issue_number:
         description: 'Numer issue/PR do dodania komentarza (opcjonalne)'
-        required: true
+        required: false
         type: string
 
 # Globalne uprawnienia dostępu dla wszystkich jobów
@@ -91,34 +91,24 @@ jobs:
           path: dist/
           retention-days: 5
 
-  comment:
-    name: Comment
+  status-comment:
+    name: Komentarz statusu
     runs-on: ubuntu-latest
-    needs: [build]
-    if: github.event.inputs.issue_number != ''
+    needs: [lint, test, build]
+    if: ${{ github.event.inputs.issue_number != '' }}
     permissions:
-      issues: write
       pull-requests: write
+      issues: write
     steps:
-      - name: Download test coverage
-        uses: actions/download-artifact@v4
-        with:
-          name: test-coverage
-          path: coverage
-
-      - name: Create comment
+      - name: Dodanie komentarza do issue/PR
         uses: peter-evans/create-or-update-comment@v3
         with:
           issue-number: ${{ github.event.inputs.issue_number }}
           body: |
-            ## 🚀 CI/CD Pipeline zakończony
+            ## 🚀 CI/CD zakończone pomyślnie
             
-            ### ✅ Wyniki:
-            - Lint: Zakończone
-            - Testy: Zakończone
-            - Build: Zakończone
+            ✅ **Lint**: Zakończone
+            ✅ **Testy**: Zakończone
+            ✅ **Build**: Zakończone
             
             Powód uruchomienia: ${{ github.event.inputs.reason }}
-            
-            Wszystkie kroki przeszły pomyślnie. Możesz sprawdzić artefakty budowy w zakładce Actions.
-          reactions: '+1' 
