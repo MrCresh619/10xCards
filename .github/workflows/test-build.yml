@@ -7,6 +7,10 @@ on:
         description: 'Powód uruchomienia workflow'
         required: false
         default: 'Ręczne uruchomienie'
+      issue_number:
+        description: 'Numer issue/PR do dodania komentarza (opcjonalne)'
+        required: true
+        type: string
 
 # Globalne uprawnienia dostępu dla wszystkich jobów
 permissions:
@@ -91,6 +95,7 @@ jobs:
     name: Comment
     runs-on: ubuntu-latest
     needs: [build]
+    if: github.event.inputs.issue_number != ''
     permissions:
       issues: write
       pull-requests: write
