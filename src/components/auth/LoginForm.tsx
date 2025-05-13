@@ -41,7 +41,7 @@ export function LoginForm() {
       }
 
       await login();
-      window.location.href = "/generate";
+      window.location.href = "/";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Wystąpił nieoczekiwany błąd");
     } finally {
